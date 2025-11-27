@@ -13,12 +13,15 @@ class PropertiesPanel(QWidget):
         self.project_ref: ProjectModel = None
 
         # STYLE CSS PRO & SOMBRE
+        # Note: On utilise [class="..."] pour cibler les propriétés dynamiques Qt
         self.setStyleSheet("""
             QWidget { background-color: #252526; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; font-size: 13px; }
+
             QLineEdit, QTextEdit, QComboBox, QSpinBox {
                 background-color: #3c3c3c; border: 1px solid #555; border-radius: 4px; padding: 5px; color: #f0f0f0;
             }
             QLineEdit:focus, QTextEdit:focus { border: 1px solid #007acc; background-color: #1e1e1e; }
+
             QLabel { color: #bbbbbb; font-weight: 500; }
 
             /* Groupes */
@@ -27,16 +30,16 @@ class PropertiesPanel(QWidget):
             }
             QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; top: -7px; background-color: #252526; }
 
-            /* Boutons */
+            /* Boutons par défaut */
             QPushButton { background-color: #3e3e42; color: white; border: 1px solid #555; padding: 6px 12px; border-radius: 3px; }
             QPushButton:hover { background-color: #505050; border-color: #007acc; }
 
-            /* Boutons Spéciaux */
-            QPushButton.add-btn { background-color: #0e639c; border: none; font-weight: bold; margin-top: 5px; }
-            QPushButton.add-btn:hover { background-color: #1177bb; }
+            /* Boutons Spéciaux (Via propriété dynamique) */
+            QPushButton[class="add-btn"] { background-color: #0e639c; border: none; font-weight: bold; margin-top: 5px; }
+            QPushButton[class="add-btn"]:hover { background-color: #1177bb; }
 
-            QPushButton.del-btn { background-color: #802020; border: none; color: #ffcccc; font-weight: bold; max-width: 80px; }
-            QPushButton.del-btn:hover { background-color: #a03030; }
+            QPushButton[class="del-btn"] { background-color: #802020; border: none; color: #ffcccc; font-weight: bold; }
+            QPushButton[class="del-btn"]:hover { background-color: #a03030; }
 
             QScrollBar:vertical { background: #252526; width: 10px; }
             QScrollBar::handle:vertical { background: #424242; border-radius: 5px; }
@@ -157,7 +160,7 @@ class PropertiesPanel(QWidget):
 
         # Bouton Ajouter
         add_act_btn = QPushButton("+ Ajouter un Événement")
-        add_act_btn.addClassName("add-btn")
+        add_act_btn.setProperty("class", "add-btn")  # CORRECTION
         add_act_btn.setCursor(Qt.PointingHandCursor)
         add_act_btn.clicked.connect(self._add_action)
         evt_layout.addWidget(add_act_btn)
@@ -174,7 +177,7 @@ class PropertiesPanel(QWidget):
 
         # Bouton Ajouter
         add_ch_btn = QPushButton("+ Ajouter un Choix")
-        add_ch_btn.addClassName("add-btn")
+        add_ch_btn.setProperty("class", "add-btn")  # CORRECTION
         add_ch_btn.setCursor(Qt.PointingHandCursor)
         add_ch_btn.clicked.connect(self._add_choice)
         choice_layout.addWidget(add_ch_btn)
@@ -192,8 +195,9 @@ class PropertiesPanel(QWidget):
         header_layout = QHBoxLayout()
         lbl = QLabel(f"<b>Action #{index + 1}</b>")
         del_btn = QPushButton("Supprimer")
-        del_btn.addClassName("del-btn")
+        del_btn.setProperty("class", "del-btn")  # CORRECTION
         del_btn.setCursor(Qt.PointingHandCursor)
+        del_btn.setFixedWidth(80)
         del_btn.clicked.connect(lambda _, i=index: self._delete_action(i))
 
         header_layout.addWidget(lbl)
@@ -247,7 +251,7 @@ class PropertiesPanel(QWidget):
         header_layout = QHBoxLayout()
         lbl = QLabel(f"<b>Option #{index + 1}</b>")
         del_btn = QPushButton("X")
-        del_btn.addClassName("del-btn")
+        del_btn.setProperty("class", "del-btn")  # CORRECTION
         del_btn.setFixedSize(30, 25)
         del_btn.clicked.connect(lambda _, i=index: self._delete_choice(i))
 

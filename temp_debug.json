@@ -10,13 +10,13 @@
   },
   "variables": {},
   "nodes": {
-    "b367af19-50f2-4ea7-9abf-5c64a8392e6d": {
-      "id": "b367af19-50f2-4ea7-9abf-5c64a8392e6d",
+    "62dc9560-49d7-4bd9-90e4-c40f2605228d": {
+      "id": "62dc9560-49d7-4bd9-90e4-c40f2605228d",
       "type": "SCENE",
-      "title": "Passage 1",
+      "title": "Start",
       "position": [
-        -448.0,
-        -39.0
+        -398.0,
+        -294.0
       ],
       "content": {
         "text": "Bonjour",
@@ -27,7 +27,7 @@
           {
             "text": "Ok",
             "condition": "",
-            "target_node_id": "6a457893-6d27-4c4b-a92e-355e612cb405"
+            "target_node_id": "c1110c01-e8fa-4ece-a941-3e22a3878169"
           }
         ],
         "actions": [],
@@ -37,13 +37,13 @@
       },
       "outputs": []
     },
-    "6a457893-6d27-4c4b-a92e-355e612cb405": {
-      "id": "6a457893-6d27-4c4b-a92e-355e612cb405",
+    "c1110c01-e8fa-4ece-a941-3e22a3878169": {
+      "id": "c1110c01-e8fa-4ece-a941-3e22a3878169",
       "type": "SCENE",
       "title": "Passage 2",
       "position": [
-        -118.0,
-        -42.0
+        -378.0,
+        40.0
       ],
       "content": {
         "text": "",
@@ -60,5 +60,5 @@
     }
   },
   "assets": {},
-  "start_node_id": "b367af19-50f2-4ea7-9abf-5c64a8392e6d"
+  "start_node_id": "62dc9560-49d7-4bd9-90e4-c40f2605228d"
 }

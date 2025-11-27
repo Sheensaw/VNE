@@ -2,7 +2,7 @@ from typing import Optional
 from src.common.models import ProjectModel, NodeModel, ActionModel
 from src.common.constants import NodeType, VarOperation, ActionType
 from src.engine.state import SessionState
-from src.engine.scripting import ScriptEngine  # CORRECTION : Import sans .py
+from src.engine.scripting import ScriptEngine  # CORRECTION CRITIQUE : Import sans .py
 
 
 class FlowManager:
@@ -28,8 +28,14 @@ class FlowManager:
         if current_node.type == NodeType.SCENE:
             if choice_index >= 0 and choice_index < len(current_node.content.choices):
                 choice = current_node.content.choices[choice_index]
-                # TODO: Vérifier condition choix ici
+                # Vérification de condition optionnelle
+                if choice.condition:
+                    if not self.script_engine.evaluate_condition(choice.condition, self.state.variables):
+                        print(f"[Flow] Condition '{choice.condition}' non remplie.")
+                        return current_node
+
                 next_node_id = choice.target_node_id
+
             elif not current_node.content.choices and current_node.outputs:
                 next_node_id = current_node.outputs[0].target_node_id
 
@@ -44,7 +50,7 @@ class FlowManager:
 
             next_node = self.get_node(next_node_id)
 
-            # --- EXÉCUTION DES ACTIONS DU NOUVEAU NŒUD ---
+            # --- EXÉCUTION DES ACTIONS (EVENTS) DU NOUVEAU NŒUD ---
             if next_node and next_node.type == NodeType.SCENE:
                 for action in next_node.content.actions:
                     self._execute_action(action)
@@ -57,8 +63,10 @@ class FlowManager:
         return None
 
     def _execute_action(self, action: ActionModel):
-        """Exécute une action définie dans l'éditeur."""
+        """Exécute une action définie dans l'éditeur (Spawn, Give Item...)."""
+        print(f"[Event] Exécution action : {action.type.value}")
         p = action.params
+
         if action.type == ActionType.ADD_ITEM:
             item_id = p.get("item_id")
             qty = int(p.get("qty", 1))
@@ -78,11 +86,9 @@ class FlowManager:
 
         elif action.type == ActionType.NPC_STATUS:
             npc_id = p.get("npc_id")
-            status = p.get("status", "fixed")  # follow / fixed
+            status = p.get("status", "fixed")
             if npc_id:
                 self.state.update_npc(npc_id, {"status": status})
-
-        # Ajouter d'autres types d'actions ici (Move, Say, etc.)
 
     def _execute_logic(self, node: NodeModel):
         var_name = node.content.variable_name
