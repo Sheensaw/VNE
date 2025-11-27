@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "name": "Nouveau Projet",
+    "author": "Auteur",
+    "version": "1.0.0",
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "variables": {},
+  "nodes": {
+    "47cbacdf-d92c-448a-92de-cac87db2ee84": {
+      "id": "47cbacdf-d92c-448a-92de-cac87db2ee84",
+      "type": "SCENE",
+      "title": "Start",
+      "position": [
+        -267.0,
+        -242.0
+      ],
+      "content": {
+        "text": "",
+        "character_id": null,
+        "background_image": null,
+        "music": null,
+        "choices": [],
+        "variable_name": null,
+        "operation": null,
+        "value": "0"
+      },
+      "outputs": []
+    }
+  },
+  "assets": {},
+  "start_node_id": "47cbacdf-d92c-448a-92de-cac87db2ee84"
+}

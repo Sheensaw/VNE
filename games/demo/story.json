@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "name": "Nouveau Projet",
+    "author": "Auteur",
+    "version": "1.0.0",
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "variables": {},
+  "nodes": {
+    "841a580d-3cf1-4be9-abcc-af0cff93cb2e": {
+      "id": "841a580d-3cf1-4be9-abcc-af0cff93cb2e",
+      "type": "SCENE",
+      "title": "Start",
+      "position": [
+        -239.0,
+        -230.0
+      ],
+      "content": {
+        "text": "ou souhaitez vous aller ?",
+        "character_id": null,
+        "background_image": null,
+        "music": null,
+        "choices": [
+          {
+            "text": "A droite",
+            "condition": "",
+            "target_node_id": "74677895-3e2c-4c6c-aa11-ff6d3f7590fe"
+          },
+          {
+            "text": "A gauche",
+            "condition": "",
+            "target_node_id": null
+          }
+        ],
+        "variable_name": null,
+        "operation": null,
+        "value": "0"
+      },
+      "outputs": []
+    },
+    "74677895-3e2c-4c6c-aa11-ff6d3f7590fe": {
+      "id": "74677895-3e2c-4c6c-aa11-ff6d3f7590fe",
+      "type": "SCENE",
+      "title": "Droite",
+      "position": [
+        -49.0,
+        55.0
+      ],
+      "content": {
+        "text": "Vous etes a droite",
+        "character_id": null,
+        "background_image": null,
+        "music": null,
+        "choices": [],
+        "variable_name": null,
+        "operation": null,
+        "value": "0"
+      },
+      "outputs": []
+    },
+    "630f351c-efe3-467c-9092-8e44f03545ab": {
+      "id": "630f351c-efe3-467c-9092-8e44f03545ab",
+      "type": "SCENE",
+      "title": "Gauche",
+      "position": [
+        -483.0,
+        32.0
+      ],
+      "content": {
+        "text": "Vous etes a gauche",
+        "character_id": null,
+        "background_image": null,
+        "music": null,
+        "choices": [],
+        "variable_name": null,
+        "operation": null,
+        "value": "0"
+      },
+      "outputs": []
+    }
+  },
+  "assets": {},
+  "start_node_id": "841a580d-3cf1-4be9-abcc-af0cff93cb2e"
+}
