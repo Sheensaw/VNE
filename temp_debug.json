@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": "Nouveau Projet",
+    "name": "Projet RPG",
     "author": "Auteur",
     "version": "1.0.0",
     "resolution": [
@@ -10,13 +10,40 @@
   },
   "variables": {},
   "nodes": {
-    "47cbacdf-d92c-448a-92de-cac87db2ee84": {
-      "id": "47cbacdf-d92c-448a-92de-cac87db2ee84",
+    "b367af19-50f2-4ea7-9abf-5c64a8392e6d": {
+      "id": "b367af19-50f2-4ea7-9abf-5c64a8392e6d",
       "type": "SCENE",
-      "title": "Start",
+      "title": "Passage 1",
       "position": [
-        -267.0,
-        -242.0
+        -448.0,
+        -39.0
+      ],
+      "content": {
+        "text": "Bonjour",
+        "character_id": null,
+        "background_image": null,
+        "music": null,
+        "choices": [
+          {
+            "text": "Ok",
+            "condition": "",
+            "target_node_id": "6a457893-6d27-4c4b-a92e-355e612cb405"
+          }
+        ],
+        "actions": [],
+        "variable_name": null,
+        "operation": null,
+        "value": "0"
+      },
+      "outputs": []
+    },
+    "6a457893-6d27-4c4b-a92e-355e612cb405": {
+      "id": "6a457893-6d27-4c4b-a92e-355e612cb405",
+      "type": "SCENE",
+      "title": "Passage 2",
+      "position": [
+        -118.0,
+        -42.0
       ],
       "content": {
         "text": "",
@@ -24,6 +51,7 @@
         "background_image": null,
         "music": null,
         "choices": [],
+        "actions": [],
         "variable_name": null,
         "operation": null,
         "value": "0"
@@ -32,5 +60,5 @@
     }
   },
   "assets": {},
-  "start_node_id": "47cbacdf-d92c-448a-92de-cac87db2ee84"
+  "start_node_id": "b367af19-50f2-4ea7-9abf-5c64a8392e6d"
 }

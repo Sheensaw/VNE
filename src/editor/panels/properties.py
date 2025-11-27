@@ -1,9 +1,9 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QFormLayout,
                                QLineEdit, QTextEdit, QComboBox, QGroupBox,
-                               QPushButton, QScrollArea)
+                               QPushButton, QScrollArea, QFrame, QSpinBox, QHBoxLayout)
 from PySide6.QtCore import Qt, QTimer
-from src.common.models import NodeModel, ChoiceModel, ProjectModel
-from src.common.constants import NodeType, VarOperation
+from src.common.models import NodeModel, ChoiceModel, ProjectModel, ActionModel
+from src.common.constants import NodeType, VarOperation, ActionType
 
 
 class PropertiesPanel(QWidget):
@@ -12,117 +12,104 @@ class PropertiesPanel(QWidget):
         self.current_node: NodeModel = None
         self.project_ref: ProjectModel = None
 
-        # --- STYLE GLOBAL DU PANNEAU ---
+        # STYLE CSS PRO & SOMBRE
         self.setStyleSheet("""
-            QWidget { 
-                background-color: #2b2b2b; 
-                color: #e0e0e0; 
-                font-family: 'Segoe UI', sans-serif;
+            QWidget { background-color: #252526; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; font-size: 13px; }
+            QLineEdit, QTextEdit, QComboBox, QSpinBox {
+                background-color: #3c3c3c; border: 1px solid #555; border-radius: 4px; padding: 5px; color: #f0f0f0;
             }
-            QLineEdit, QTextEdit, QComboBox {
-                background-color: #383838;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 4px;
-                color: white;
+            QLineEdit:focus, QTextEdit:focus { border: 1px solid #007acc; background-color: #1e1e1e; }
+            QLabel { color: #bbbbbb; font-weight: 500; }
+
+            /* Groupes */
+            QGroupBox { 
+                border: 1px solid #444; border-radius: 6px; margin-top: 20px; padding-top: 15px; font-weight: bold; color: #007acc; background-color: #2d2d30;
             }
-            QLineEdit:focus, QTextEdit:focus {
-                border: 1px solid #5c4b8b;
-                background-color: #404040;
-            }
-            QLabel { color: #aaaaaa; }
-            QGroupBox {
-                border: 1px solid #444;
-                border-radius: 6px;
-                margin-top: 10px;
-                padding-top: 10px;
-                font-weight: bold;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 3px 0 3px;
-            }
-            QPushButton {
-                background-color: #4a4a4a;
-                border-radius: 4px;
-                padding: 6px;
-            }
-            QPushButton:hover { background-color: #555; }
+            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 5px; top: -7px; background-color: #252526; }
+
+            /* Boutons */
+            QPushButton { background-color: #3e3e42; color: white; border: 1px solid #555; padding: 6px 12px; border-radius: 3px; }
+            QPushButton:hover { background-color: #505050; border-color: #007acc; }
+
+            /* Boutons Spéciaux */
+            QPushButton.add-btn { background-color: #0e639c; border: none; font-weight: bold; margin-top: 5px; }
+            QPushButton.add-btn:hover { background-color: #1177bb; }
+
+            QPushButton.del-btn { background-color: #802020; border: none; color: #ffcccc; font-weight: bold; max-width: 80px; }
+            QPushButton.del-btn:hover { background-color: #a03030; }
+
+            QScrollBar:vertical { background: #252526; width: 10px; }
+            QScrollBar::handle:vertical { background: #424242; border-radius: 5px; }
         """)
 
-        # Layout Principal
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Scroll Area pour gérer les petits écrans ou nombreux choix
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setFrameShape(QScrollArea.NoFrame)
         self.main_layout.addWidget(self.scroll)
 
-        # Widget Conteneur dans le Scroll
         self.container = QWidget()
         self.scroll.setWidget(self.container)
 
+        # Layout principal vertical
         self.layout = QVBoxLayout(self.container)
         self.layout.setAlignment(Qt.AlignTop)
-        self.layout.setSpacing(15)  # Espacement aéré
+        self.layout.setSpacing(15)
+        self.layout.setContentsMargins(10, 10, 10, 10)
 
-        # Header (Type de noeud)
-        self.header_label = QLabel("Aucune sélection")
-        self.header_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #5c4b8b; padding: 10px;")
+        # En-tête (Type de Nœud)
+        self.header_label = QLabel("AUCUNE SÉLECTION")
+        self.header_label.setStyleSheet(
+            "font-size: 14px; font-weight: bold; color: #569cd6; padding: 5px; border-bottom: 2px solid #3e3e42;")
         self.header_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.header_label)
 
-        # Formulaire
+        # Formulaire dynamique
         self.form_widget = QWidget()
-        self.form_layout = QFormLayout(self.form_widget)
-        self.form_layout.setLabelAlignment(Qt.AlignRight)
+        self.form_layout = QVBoxLayout(self.form_widget)
+        self.form_layout.setContentsMargins(0, 0, 0, 0)
+        self.form_layout.setSpacing(10)
         self.layout.addWidget(self.form_widget)
 
     def set_project(self, project: ProjectModel):
         self.project_ref = project
 
     def load_node(self, node: NodeModel):
+        """Reconstruit toute l'interface pour le nœud donné."""
         self.current_node = node
         self._clear_layout(self.form_layout)
 
         if node is None:
-            self.header_label.setText("Aucune sélection")
+            self.header_label.setText("SÉLECTIONNEZ UN NŒUD")
             return
 
-        self.header_label.setText(f"{node.type.value.upper()}")
+        self.header_label.setText(f"ÉDITION : {node.type.value.upper()}")
 
-        # --- CHAMP NOM (FOCUS AUTOMATIQUE) ---
-        lbl_name = QLabel("Nom:")
-        lbl_name.setStyleSheet("color: white; font-weight: bold;")
-        self.form_layout.addRow(lbl_name)
+        # --- 1. BLOC IDENTITÉ (Titre) ---
+        id_group = QGroupBox("Identité")
+        id_layout = QFormLayout(id_group)
 
         current_title = getattr(self.current_node, 'title', self.current_node.id[:8])
         self.name_edit = QLineEdit(current_title)
+        self.name_edit.setPlaceholderText("Nom unique (ex: Village_Entree)")
         self.name_edit.textChanged.connect(self._update_title)
-        self.form_layout.addRow(self.name_edit)
 
-        # FOCUS LOGIC : On met le focus sur le nom pour éditer tout de suite
-        # On utilise QTimer pour laisser le temps au widget de s'afficher
+        id_layout.addRow("Titre du Passage:", self.name_edit)
+        self.form_layout.addWidget(id_group)
+
+        # Focus automatique ergonomique
         QTimer.singleShot(50, self._focus_name_field)
 
-        # Séparateur visuel
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        line.setStyleSheet("background-color: #444;")
-        self.form_layout.addRow(line)
-
+        # --- 2. CONTENU SPÉCIFIQUE ---
         if node.type == NodeType.SCENE:
-            self._build_scene_form()
+            self._build_scene_ui()
         elif node.type == NodeType.SET_VAR:
-            self._build_logic_form()
+            self._build_logic_ui()
 
     def _focus_name_field(self):
-        """Place le curseur dans le champ nom et sélectionne tout."""
-        if hasattr(self, 'name_edit'):
+        if hasattr(self, 'name_edit') and self.name_edit.isVisible():
             self.name_edit.setFocus()
             self.name_edit.selectAll()
 
@@ -133,109 +120,221 @@ class PropertiesPanel(QWidget):
     def _clear_layout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
-            if item.widget(): item.widget().deleteLater()
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self._clear_layout(item.layout())
 
-    # --- Formulaire SCENE ---
-    def _build_scene_form(self):
-        # Texte
-        lbl_txt = QLabel("Récit:")
+    # =========================================================================
+    #  UI SCÈNE (TEXTE, ACTIONS, CHOIX)
+    # =========================================================================
+    def _build_scene_ui(self):
+        # --- A. NARRATION ---
+        narr_group = QGroupBox("Narration")
+        narr_layout = QFormLayout(narr_group)
+
         self.text_edit = QTextEdit(self.current_node.content.text)
-        self.text_edit.setPlaceholderText("Il était une fois...")
-        self.text_edit.setFixedHeight(100)
+        self.text_edit.setPlaceholderText("Écrivez l'histoire ici...")
+        self.text_edit.setMinimumHeight(100)
         self.text_edit.textChanged.connect(
-            lambda: setattr(self.current_node.content, 'text', self.text_edit.toPlainText())
-        )
-        self.form_layout.addRow(lbl_txt, self.text_edit)
+            lambda: setattr(self.current_node.content, 'text', self.text_edit.toPlainText()))
 
-        # Image
         self.bg_edit = QLineEdit(self.current_node.content.background_image or "")
-        self.bg_edit.setPlaceholderText("assets/bg.png")
-        self.bg_edit.textChanged.connect(
-            lambda t: setattr(self.current_node.content, 'background_image', t)
-        )
-        self.form_layout.addRow("Image:", self.bg_edit)
+        self.bg_edit.setPlaceholderText("assets/images/fond.png")
+        self.bg_edit.textChanged.connect(lambda t: setattr(self.current_node.content, 'background_image', t))
 
-        # Choix Header
-        lbl_choices = QLabel("CHOIX")
-        lbl_choices.setStyleSheet("font-weight: bold; color: #BBB; margin-top: 10px;")
-        self.form_layout.addRow(lbl_choices)
+        narr_layout.addRow("Texte:", self.text_edit)
+        narr_layout.addRow("Image de fond:", self.bg_edit)
+        self.form_layout.addWidget(narr_group)
 
-        add_btn = QPushButton("+ Ajouter Option")
-        add_btn.setStyleSheet("background-color: #2d5a37; color: white; font-weight: bold;")
-        add_btn.clicked.connect(self._add_choice)
-        self.form_layout.addRow(add_btn)
+        # --- B. ÉVÉNEMENTS (ACTIONS) ---
+        evt_group = QGroupBox("Événements (On Enter)")
+        evt_layout = QVBoxLayout(evt_group)
 
+        # Liste des actions existantes
+        for i, action in enumerate(self.current_node.content.actions):
+            self._add_action_block(evt_layout, i, action)
+
+        # Bouton Ajouter
+        add_act_btn = QPushButton("+ Ajouter un Événement")
+        add_act_btn.addClassName("add-btn")
+        add_act_btn.setCursor(Qt.PointingHandCursor)
+        add_act_btn.clicked.connect(self._add_action)
+        evt_layout.addWidget(add_act_btn)
+
+        self.form_layout.addWidget(evt_group)
+
+        # --- C. NAVIGATION (CHOIX) ---
+        choice_group = QGroupBox("Navigation & Choix")
+        choice_layout = QVBoxLayout(choice_group)
+
+        # Liste des choix existants
         for i, choice in enumerate(self.current_node.content.choices):
-            self._add_choice_ui(i, choice)
+            self._add_choice_block(choice_layout, i, choice)
 
-    def _add_choice_ui(self, index, choice: ChoiceModel):
-        group = QGroupBox(f"Option #{index + 1}")
-        g_layout = QFormLayout()
+        # Bouton Ajouter
+        add_ch_btn = QPushButton("+ Ajouter un Choix")
+        add_ch_btn.addClassName("add-btn")
+        add_ch_btn.setCursor(Qt.PointingHandCursor)
+        add_ch_btn.clicked.connect(self._add_choice)
+        choice_layout.addWidget(add_ch_btn)
 
-        # Texte Bouton
+        self.form_layout.addWidget(choice_group)
+
+    # --- BLOC ACTION INDIVIDUEL ---
+    def _add_action_block(self, parent_layout, index, action: ActionModel):
+        # Conteneur visuel pour une action
+        frame = QFrame()
+        frame.setStyleSheet("background-color: #333337; border-radius: 4px; border: 1px solid #454545;")
+        layout = QFormLayout(frame)
+
+        # Header avec bouton supprimer
+        header_layout = QHBoxLayout()
+        lbl = QLabel(f"<b>Action #{index + 1}</b>")
+        del_btn = QPushButton("Supprimer")
+        del_btn.addClassName("del-btn")
+        del_btn.setCursor(Qt.PointingHandCursor)
+        del_btn.clicked.connect(lambda _, i=index: self._delete_action(i))
+
+        header_layout.addWidget(lbl)
+        header_layout.addStretch()
+        header_layout.addWidget(del_btn)
+        layout.addRow(header_layout)
+
+        # Type d'action
+        type_combo = QComboBox()
+        type_combo.addItems([t.value for t in ActionType])
+        type_combo.setCurrentText(action.type.value)
+        type_combo.currentTextChanged.connect(lambda t, i=index: self._update_action_type(i, t))
+        layout.addRow("Type:", type_combo)
+
+        # Paramètres contextuels
+        if action.type in [ActionType.ADD_ITEM, ActionType.REMOVE_ITEM]:
+            item_id_edit = QLineEdit(str(action.params.get("item_id", "")))
+            item_id_edit.setPlaceholderText("ID de l'objet (ex: sword)")
+            item_id_edit.textChanged.connect(lambda t, i=index: self._update_action_param(i, "item_id", t))
+
+            qty_spin = QSpinBox()
+            qty_spin.setRange(1, 999)
+            qty_spin.setValue(int(action.params.get("qty", 1)))
+            qty_spin.valueChanged.connect(lambda v, i=index: self._update_action_param(i, "qty", v))
+
+            layout.addRow("ID Objet:", item_id_edit)
+            layout.addRow("Quantité:", qty_spin)
+
+        elif action.type in [ActionType.NPC_SPAWN, ActionType.NPC_STATUS]:
+            npc_edit = QLineEdit(str(action.params.get("npc_id", "")))
+            npc_edit.setPlaceholderText("ID du PNJ (ex: Cyndra)")
+            npc_edit.textChanged.connect(lambda t, i=index: self._update_action_param(i, "npc_id", t))
+            layout.addRow("ID PNJ:", npc_edit)
+
+            if action.type == ActionType.NPC_STATUS:
+                status_combo = QComboBox()
+                status_combo.addItems(["fixed", "follow", "dead"])
+                status_combo.setCurrentText(str(action.params.get("status", "fixed")))
+                status_combo.currentTextChanged.connect(lambda t, i=index: self._update_action_param(i, "status", t))
+                layout.addRow("Statut:", status_combo)
+
+        parent_layout.addWidget(frame)
+
+    # --- BLOC CHOIX INDIVIDUEL ---
+    def _add_choice_block(self, parent_layout, index, choice: ChoiceModel):
+        frame = QFrame()
+        frame.setStyleSheet("background-color: #333337; border-radius: 4px; border: 1px solid #454545;")
+        layout = QFormLayout(frame)
+
+        # Header
+        header_layout = QHBoxLayout()
+        lbl = QLabel(f"<b>Option #{index + 1}</b>")
+        del_btn = QPushButton("X")
+        del_btn.addClassName("del-btn")
+        del_btn.setFixedSize(30, 25)
+        del_btn.clicked.connect(lambda _, i=index: self._delete_choice(i))
+
+        header_layout.addWidget(lbl)
+        header_layout.addStretch()
+        header_layout.addWidget(del_btn)
+        layout.addRow(header_layout)
+
+        # Texte
         txt_edit = QLineEdit(choice.text)
-        txt_edit.setPlaceholderText("Texte du bouton...")
-        txt_edit.textChanged.connect(
-            lambda t, idx=index: self._update_choice(idx, "text", t)
-        )
-        g_layout.addRow("Titre:", txt_edit)
+        txt_edit.setPlaceholderText("Ce que voit le joueur...")
+        txt_edit.textChanged.connect(lambda t, i=index: setattr(self.current_node.content.choices[i], 'text', t))
+        layout.addRow("Texte:", txt_edit)
 
-        # Cible (ComboBox)
+        # Cible (Smart Combo)
         target_combo = QComboBox()
-        target_combo.addItem("--- (Fin) ---", None)
+        target_combo.addItem("--- (Fin / Rien) ---", None)
 
-        current_idx = 0
         if self.project_ref:
-            combo_idx = 1
             for nid, node in self.project_ref.nodes.items():
-                # On évite de se lier à soi-même pour la clarté (optionnel)
-                if nid == self.current_node.id: continue
+                if nid != self.current_node.id:
+                    # Affichage: Titre + (ID court)
+                    label = f"{node.title} ({nid[:4]})"
+                    target_combo.addItem(label, nid)
 
-                title = getattr(node, 'title', nid[:8])
-                display = f"{title} ({nid[:4]})"
-                target_combo.addItem(display, nid)
+        # Sélectionner la valeur actuelle
+        idx = target_combo.findData(choice.target_node_id)
+        if idx >= 0: target_combo.setCurrentIndex(idx)
 
-                if choice.target_node_id == nid:
-                    current_idx = combo_idx
-                combo_idx += 1
-
-        target_combo.setCurrentIndex(current_idx)
         target_combo.currentIndexChanged.connect(
-            lambda idx, c=target_combo, i=index: self._on_target_selected(i, c)
-        )
-        g_layout.addRow("Vers:", target_combo)
+            lambda _, c=target_combo, i=index: setattr(self.current_node.content.choices[i], 'target_node_id',
+                                                       c.currentData()))
+        layout.addRow("Vers:", target_combo)
 
-        group.setLayout(g_layout)
-        self.form_layout.addRow(group)
+        parent_layout.addWidget(frame)
 
-    def _on_target_selected(self, choice_index, combo):
-        target_id = combo.currentData()
-        if 0 <= choice_index < len(self.current_node.content.choices):
-            self.current_node.content.choices[choice_index].target_node_id = target_id
+    # --- LOGIQUE DE MISE À JOUR DU MODÈLE ---
+
+    def _add_action(self):
+        self.current_node.content.actions.append(ActionModel())
+        self.load_node(self.current_node)  # Refresh complet pour afficher
+
+    def _delete_action(self, index):
+        if 0 <= index < len(self.current_node.content.actions):
+            self.current_node.content.actions.pop(index)
+            self.load_node(self.current_node)
+
+    def _update_action_type(self, index, type_str):
+        for at in ActionType:
+            if at.value == type_str:
+                self.current_node.content.actions[index].type = at
+                # On recharge pour afficher les bons champs de paramètres
+                self.load_node(self.current_node)
+                break
+
+    def _update_action_param(self, index, key, value):
+        self.current_node.content.actions[index].params[key] = value
 
     def _add_choice(self):
-        new_choice = ChoiceModel(text="Continuer")
-        self.current_node.content.choices.append(new_choice)
-        self.load_node(self.current_node)  # Refresh
+        self.current_node.content.choices.append(ChoiceModel(text="Nouveau choix"))
+        self.load_node(self.current_node)
 
-    def _update_choice(self, index, field, value):
+    def _delete_choice(self, index):
         if 0 <= index < len(self.current_node.content.choices):
-            setattr(self.current_node.content.choices[index], field, value)
+            self.current_node.content.choices.pop(index)
+            self.load_node(self.current_node)
 
-    def _build_logic_form(self):
+    # --- UI LOGIQUE (SET VAR) ---
+    def _build_logic_ui(self):
+        group = QGroupBox("Opération sur Variable")
+        layout = QFormLayout(group)
+
         var_edit = QLineEdit(self.current_node.content.variable_name or "")
-        var_edit.setPlaceholderText("ex: score_confiance")
+        var_edit.setPlaceholderText("Nom variable (ex: gold)")
         var_edit.textChanged.connect(lambda t: setattr(self.current_node.content, 'variable_name', t))
-        self.form_layout.addRow("Variable:", var_edit)
+        layout.addRow("Variable:", var_edit)
 
         op_combo = QComboBox()
         op_combo.addItems([e.value for e in VarOperation])
         if self.current_node.content.operation:
             op_combo.setCurrentText(self.current_node.content.operation)
         op_combo.currentTextChanged.connect(lambda t: setattr(self.current_node.content, 'operation', t))
-        self.form_layout.addRow("Opération:", op_combo)
+        layout.addRow("Opération:", op_combo)
 
         val_edit = QLineEdit(str(self.current_node.content.value))
-        val_edit.setPlaceholderText("Valeur ou Formule")
+        val_edit.setPlaceholderText("Valeur (ex: 10)")
         val_edit.textChanged.connect(lambda t: setattr(self.current_node.content, 'value', t))
-        self.form_layout.addRow("Valeur:", val_edit)
+        layout.addRow("Valeur:", val_edit)
+
+        self.form_layout.addWidget(group)

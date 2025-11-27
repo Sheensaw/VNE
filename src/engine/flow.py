@@ -1,15 +1,13 @@
 from typing import Optional
-from src.common.models import ProjectModel, NodeModel
-from src.common.constants import NodeType, VarOperation
+from src.common.models import ProjectModel, NodeModel, ActionModel
+from src.common.constants import NodeType, VarOperation, ActionType
 from src.engine.state import SessionState
-# CORRECTION : Suppression du ".py" qui causait le crash
-from src.engine.scripting import ScriptEngine
+from src.engine.scripting import ScriptEngine  # CORRECTION : Import sans .py
 
 
 class FlowManager:
     """
-    Cerveau de la navigation. Détermine quel est le prochain noeud
-    en fonction des choix et des conditions.
+    Cerveau de la navigation et exécution des actions.
     """
 
     def __init__(self, project: ProjectModel, state: SessionState):
@@ -27,36 +25,64 @@ class FlowManager:
 
         next_node_id = None
 
-        # --- LOGIQUE SCENE (TWINE) ---
         if current_node.type == NodeType.SCENE:
-            # 1. Choix explicite
             if choice_index >= 0 and choice_index < len(current_node.content.choices):
                 choice = current_node.content.choices[choice_index]
+                # TODO: Vérifier condition choix ici
                 next_node_id = choice.target_node_id
-
-            # 2. Sortie par défaut (si pas de boutons choix)
             elif not current_node.content.choices and current_node.outputs:
                 next_node_id = current_node.outputs[0].target_node_id
 
-        # --- LOGIQUE VARIABLE ---
         elif current_node.type == NodeType.SET_VAR:
             self._execute_logic(current_node)
             if current_node.outputs:
                 next_node_id = current_node.outputs[0].target_node_id
 
-        # --- TRANSITION ---
         if next_node_id:
             self.state.current_node_id = next_node_id
             self.state.push_history(next_node_id)
 
-            # Gestion Récursive pour les nœuds logiques
             next_node = self.get_node(next_node_id)
+
+            # --- EXÉCUTION DES ACTIONS DU NOUVEAU NŒUD ---
+            if next_node and next_node.type == NodeType.SCENE:
+                for action in next_node.content.actions:
+                    self._execute_action(action)
+
             if next_node and next_node.type == NodeType.SET_VAR:
                 return self.advance()
 
             return next_node
 
         return None
+
+    def _execute_action(self, action: ActionModel):
+        """Exécute une action définie dans l'éditeur."""
+        p = action.params
+        if action.type == ActionType.ADD_ITEM:
+            item_id = p.get("item_id")
+            qty = int(p.get("qty", 1))
+            if item_id:
+                self.state.add_item(item_id, qty)
+
+        elif action.type == ActionType.REMOVE_ITEM:
+            item_id = p.get("item_id")
+            qty = int(p.get("qty", 1))
+            if item_id:
+                self.state.remove_item(item_id, qty)
+
+        elif action.type == ActionType.NPC_SPAWN:
+            npc_id = p.get("npc_id")
+            if npc_id:
+                self.state.update_npc(npc_id, {"spawned": True, "location": self.state.current_node_id})
+
+        elif action.type == ActionType.NPC_STATUS:
+            npc_id = p.get("npc_id")
+            status = p.get("status", "fixed")  # follow / fixed
+            if npc_id:
+                self.state.update_npc(npc_id, {"status": status})
+
+        # Ajouter d'autres types d'actions ici (Move, Say, etc.)
 
     def _execute_logic(self, node: NodeModel):
         var_name = node.content.variable_name
